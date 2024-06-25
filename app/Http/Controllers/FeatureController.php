@@ -28,7 +28,6 @@ class FeatureController extends Controller
             ], 404);
         }
     }
-
     public function store(Request $request){
         $validator = Validator::make($request->all(),[
             'name'          => 'required|string|max:255',
@@ -36,7 +35,6 @@ class FeatureController extends Controller
             'status'        => 'required|in:completed,incompleted',
             'description'   => 'required|string',
         ]);
-
         if($validator->fails()){
             return response()->json([
                 'status' => 422,

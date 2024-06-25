@@ -9,9 +9,16 @@ use Illuminate\Support\Facades\Storage;
 
 class ClientController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $clients = Client::all();
+        $keyword = $request->input('keyword');
+        $clients = Client::query();
+        
+        if ($keyword) {
+            $clients->where('company_name', 'like', "%$keyword%");
+        }
+        
+        $clients = $clients->get();
     
         if ($clients->isEmpty()) {
             return response()->json([

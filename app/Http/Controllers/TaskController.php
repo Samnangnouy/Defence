@@ -103,7 +103,6 @@ class TaskController extends Controller
             'created_by'  => $userId,
             'updated_by'  => $userId
         ]);
-
         if ($task) {
             // Attach only valid users to the task
             $task->members()->attach($request->member_id);

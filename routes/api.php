@@ -70,7 +70,7 @@ Route::middleware(['auth:api'])->group(function () {
     Route::get('designations/{id}/edit', [DesignationController::class, 'edit']);
     Route::put('designations/{id}/update', [DesignationController::class, 'update']);
     Route::delete('designations/{id}/delete', [DesignationController::class, 'destroy']);
-    Route::get('designations', [DesignationController::class, 'getDesignationsByCategory']);
+    Route::get('designation', [DesignationController::class, 'getDesignationsByCategory']);
 
     Route::post('members', [MemberController::class, 'store']);
     Route::get('members', [MemberController::class, 'index']);

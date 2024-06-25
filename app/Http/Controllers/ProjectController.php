@@ -73,10 +73,8 @@ class ProjectController extends Controller
     }
 
     public function store(Request $request) {
-        // Check if the authenticated user is an admin
         $user = Auth::user();
         $isAdmin = Admin::where('user_id', $user->id)->exists();
-
         if (!$isAdmin) {
             return response()->json([
                 'status' => 403,
@@ -96,14 +94,12 @@ class ProjectController extends Controller
             'member_id'     => 'required|array',
             'member_id.*'   => 'exists:members,id',
         ]);
-    
         if ($validator->fails()) {
             return response()->json([
                 'status' => 422,
                 'message' => $validator->errors()
             ], 422);
         }
-    
         $project = new Project;
         $project->name = $request->input('name');
         $project->status = $request->input('status');
@@ -115,7 +111,6 @@ class ProjectController extends Controller
         $project->client_id = $request->input('client_id');
         $project->created_by = auth()->id(); // Set created_by
         $project->updated_by = auth()->id(); // Set updated_by
-    
         if ($request->hasFile('image')) {
             $completeFileName = $request->file('image')->getClientOriginalName();
             $fileNameOnly = pathinfo($completeFileName, PATHINFO_FILENAME);
@@ -124,13 +119,10 @@ class ProjectController extends Controller
             $path = $request->file('image')->storeAs('public/projects', $compPic);
             $project->image = $compPic;
         }
-    
         if ($project->save()) {
             // Attach members to the project after the project is saved
             $project->members()->attach($request->input('member_id'));
-            
             $projectImageUrl = url('storage/projects/'.$project->image); // Construct the URL
-            
             return response()->json([
                 'status' => 200,
                 'message' => 'Project created successfully!',

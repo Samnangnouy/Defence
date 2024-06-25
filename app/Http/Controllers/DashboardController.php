@@ -31,7 +31,10 @@ class DashboardController extends Controller
 
     public function getProject()
     {
-        $projects = Project::with('features', 'members.user')->get();
+        $projects = Project::with('features', 'members.user')
+        ->orderBy('created_at', 'desc')
+        ->take(7)
+        ->get();
 
         // Modify the project collection to include full URL for project and user images
         $projects->each(function($project) {
