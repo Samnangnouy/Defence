@@ -190,6 +190,8 @@ class FeatureController extends Controller
     public function getFeaturesByProject($projectId){
         // Eager load the project relationship
         $features = Feature::with('project')->where('project_id', $projectId)->get();
+        $features = Feature::withCount('tasks')->where('project_id', $projectId)->get();
+        // $totalFeatures = $features->count();
     
         if($features->count() > 0){
             // Add imageUrl for each feature's project
@@ -201,7 +203,8 @@ class FeatureController extends Controller
     
             return response()->json([
                 'status' => 200,
-                'features' => $features
+                'features' => $features,
+                // 'total_features' => $totalFeatures
             ], 200);
         } else {
             return response()->json([
