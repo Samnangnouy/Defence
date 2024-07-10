@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Validator;
 use App\Models\Task;
 use App\Models\Feature;
 use App\Models\Member;
+use App\Models\Admin;
 use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
 
@@ -27,9 +28,34 @@ class TaskController extends Controller
     //     }
     // }
 
-    public function index()
+    public function index(Request $request)
     {
-        $tasks = Task::with(['members.user', 'feature'])->get();
+        $keyword = $request->input('keyword');
+        $status = $request->input('status');
+        $perPage = $request->input('per_page', 5);
+        $userId = auth()->id();
+        $isAdmin = Admin::where('user_id', $userId)->exists();
+        $tasks = Task::query();
+        $tasks->with(['members.user', 'feature']);
+        if ($keyword) {
+            $tasks->where('name', 'like', "%$keyword%");
+        }
+    
+        if ($status) {
+            $tasks->where('status', $status);
+        }
+
+        if (!$isAdmin) {
+            // If user is not an admin, filter tasks related to projects the member is associated with
+            $tasks->whereHas('members', function ($query) use ($userId) {
+                $query->where('user_id', $userId);
+            });
+            // $tasks->whereHas('members', function ($query) use ($userId) {
+            //     $query->where('user_id', $userId);
+            // })->with(['client', 'admin.user', 'members.user']);
+        }
+
+        $tasks = $tasks->paginate($perPage);
 
         if ($tasks->count() > 0) {
             // Prepend the image URL to each user's image filename

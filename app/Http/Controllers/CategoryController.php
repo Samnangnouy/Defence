@@ -18,11 +18,36 @@ class CategoryController extends Controller
 
     public function index(Request $request){
         $keyword = $request->input('keyword');
+        $perPage = $request->input('per_page', 5);
         $categories = Category::query();
         if($keyword){
             $categories->where('name', 'like', "%$keyword%");
         }
+        // Retrieve the roles
+        $categories = $categories->paginate($perPage);
+
+        if($categories->count() > 0){
+            return response()->json([
+                'status' => 200,
+                'categories' => $categories
+            ], 200);
+        }else{
+            return response()->json([
+                'status' => 404,
+                'message' => 'No Category Found!'
+            ], 404);
+        }
+    }
+
+    public function list(Request $request){
+        $keyword = $request->input('keyword');
+        $categories = Category::query();
+        if($keyword){
+            $categories->where('name', 'like', "%$keyword%");
+        }
+        // Retrieve the roles
         $categories = $categories->get();
+
         if($categories->count() > 0){
             return response()->json([
                 'status' => 200,

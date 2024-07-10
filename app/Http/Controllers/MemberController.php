@@ -14,12 +14,44 @@ class MemberController extends Controller
     public function index(Request $request)
     {
         $keyword = $request->input('keyword');
+        $perPage = $request->input('per_page', 5);
         $members = Member::with(['user', 'designation', 'category']);
         if($keyword){
             $members->whereHas('user', function ($query) use ($keyword) {
                 $query->where('name', 'like', "%$keyword%");
             });
         }
+        $members = $members->paginate($perPage);
+
+        // Map each member to include the imageUrl
+        $members->getCollection()->transform(function ($member) {
+            $member->user->imageUrl = url('storage/users/' . $member->user->image);
+            return $member;
+        });
+
+        if ($members->isEmpty()) {
+            return response()->json([
+                'status' => 404,
+                'message' => 'No Member Found!'
+            ], 404);
+        }
+
+        return response()->json([
+            'status' => 200,
+            'members' => $members
+        ], 200);
+    }
+
+    public function list(Request $request)
+    {
+        $keyword = $request->input('keyword');
+        $members = Member::with(['user', 'designation', 'category']);
+        if($keyword){
+            $members->whereHas('user', function ($query) use ($keyword) {
+                $query->where('name', 'like', "%$keyword%");
+            });
+        }
+
         $members = $members->get()->map(function ($member) {
             // Assigning imageUrl to each user
             $member->user->imageUrl = url('storage/users/' . $member->user->image);
@@ -162,7 +194,7 @@ class MemberController extends Controller
     
         // Get the members associated with the project
         // $members = Project::findOrFail($projectId)->members;
-        $members = Project::findOrFail($projectId)->members()->with('user');
+        $members = Project::findOrFail($projectId)->members()->with('user', 'designation');
         $members = $members->get()->map(function ($member) {
             // Assigning imageUrl to each user
             $member->user->imageUrl = url('storage/users/' . $member->user->image);

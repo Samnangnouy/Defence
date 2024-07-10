@@ -23,6 +23,34 @@ class RoleController extends Controller
     public function index(Request $request)
     {
         $keyword = $request->input('keyword');
+        $perPage = $request->input('per_page', 5);
+        $roles = Role::query(); // Initialize the query builder
+
+        // Apply the search filter if keyword is present
+        if ($keyword) {
+            $roles->where('name', 'like', "%$keyword%");
+        }
+
+        // Retrieve the roles
+        $roles = $roles->paginate($perPage);
+
+        // Check if roles are found
+        if ($roles->count() > 0) {
+            return response()->json([
+                'status' => 200,
+                'roles' => $roles
+            ], 200);
+        } else {
+            return response()->json([
+                'status' => 404,
+                'message' => 'No Roles Found!'
+            ], 404);
+        }
+    }
+
+    public function list(Request $request)
+    {
+        $keyword = $request->input('keyword');
         $roles = Role::query(); // Initialize the query builder
 
         // Apply the search filter if keyword is present

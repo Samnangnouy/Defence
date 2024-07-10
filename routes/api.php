@@ -43,6 +43,7 @@ Route::group(['middleware'=>'api'], function($routes){
 Route::middleware(['auth:api'])->group(function () {
     Route::post('roles', [RoleController::class, 'store']);
     Route::get('roles', [RoleController::class, 'index']);
+    Route::get('listroles', [RoleController::class, 'list']);
     Route::get('permissions', [RoleController::class, 'create']);
     Route::get('roles/{role}', [RoleController::class, 'show']);
     Route::get('roles/{role}/edit', [RoleController::class, 'edit']);
@@ -51,6 +52,7 @@ Route::middleware(['auth:api'])->group(function () {
 
     Route::post('users', [UserController::class, 'store']);
     Route::get('users', [UserController::class, 'index']);
+    Route::get('listusers', [UserController::class, 'list']);
     Route::get('users/{user}', [UserController::class, 'show']);
     Route::get('users/{user}/edit', [UserController::class, 'edit']);
     Route::post('users/{user}/update', [UserController::class, 'update']);
@@ -59,6 +61,7 @@ Route::middleware(['auth:api'])->group(function () {
 
     Route::post('categories', [CategoryController::class, 'store']);
     Route::get('categories', [CategoryController::class, 'index']);
+    Route::get('listcategories', [CategoryController::class, 'list']);
     Route::get('categories/{id}', [CategoryController::class, 'show']);
     Route::get('categories/{id}/edit', [CategoryController::class, 'edit']);
     Route::put('categories/{id}/update', [CategoryController::class, 'update']);
@@ -66,6 +69,7 @@ Route::middleware(['auth:api'])->group(function () {
 
     Route::post('designations', [DesignationController::class, 'store']);
     Route::get('designations', [DesignationController::class, 'index']);
+    Route::get('listdesignations', [DesignationController::class, 'list']);
     Route::get('designations/{id}', [DesignationController::class, 'show']);
     Route::get('designations/{id}/edit', [DesignationController::class, 'edit']);
     Route::put('designations/{id}/update', [DesignationController::class, 'update']);
@@ -74,6 +78,7 @@ Route::middleware(['auth:api'])->group(function () {
 
     Route::post('members', [MemberController::class, 'store']);
     Route::get('members', [MemberController::class, 'index']);
+    Route::get('listmembers', [MemberController::class, 'list']);
     Route::get('members/{id}', [MemberController::class, 'show']);
     Route::get('members/{id}/edit', [MemberController::class, 'edit']);
     Route::put('members/{id}/update', [MemberController::class, 'update']);
@@ -82,6 +87,7 @@ Route::middleware(['auth:api'])->group(function () {
 
     Route::post('clients', [ClientController::class, 'store']);
     Route::get('clients', [ClientController::class, 'index']);
+    Route::get('listclients', [ClientController::class, 'list']);
     Route::get('clients/{id}', [ClientController::class, 'show']);
     Route::get('clients/{id}/edit', [ClientController::class, 'edit']);
     Route::post('clients/{id}/update', [ClientController::class, 'update']);
@@ -89,6 +95,7 @@ Route::middleware(['auth:api'])->group(function () {
 
     Route::post('admins', [AdminController::class, 'store']);
     Route::get('admins', [AdminController::class, 'index']);
+    Route::get('listadmins', [AdminController::class, 'list']);
     Route::get('admins/{id}', [AdminController::class, 'show']);
     Route::get('admins/{id}/edit', [AdminController::class, 'edit']);
     Route::put('admins/{id}/update', [AdminController::class, 'update']);
@@ -96,6 +103,7 @@ Route::middleware(['auth:api'])->group(function () {
 
     Route::post('projects', [ProjectController::class, 'store']);
     Route::get('projects', [ProjectController::class, 'index']);
+    Route::get('listprojects', [ProjectController::class, 'list']);
     Route::get('projects/{id}', [ProjectController::class, 'show']);
     Route::get('projects/{id}/edit', [ProjectController::class, 'edit']);
     Route::post('projects/{id}/update', [ProjectController::class, 'update']);

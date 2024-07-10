@@ -11,6 +11,31 @@ class AdminController extends Controller
     public function index(Request $request)
     {
         $keyword = $request->input('keyword');
+        $perPage = $request->input('per_page', 5);
+        $admins = Admin::with(['user']);
+        if($keyword){
+            $admins->whereHas('user', function ($query) use ($keyword) {
+                $query->where('name', 'like', "%$keyword%");
+            });
+        }
+        $admins = $admins->paginate($perPage);
+        
+        if ($admins->isEmpty()) {
+            return response()->json([
+                'status' => 404,
+                'message' => 'No Admin Found!'
+            ], 404);
+        }
+
+        return response()->json([
+            'status' => 200,
+            'admins' => $admins
+        ], 200);
+    }
+
+    public function list(Request $request)
+    {
+        $keyword = $request->input('keyword');
         $admins = Admin::with(['user']);
         if($keyword){
             $admins->whereHas('user', function ($query) use ($keyword) {
@@ -18,6 +43,7 @@ class AdminController extends Controller
             });
         }
         $admins = $admins->get();
+        
         if ($admins->isEmpty()) {
             return response()->json([
                 'status' => 404,

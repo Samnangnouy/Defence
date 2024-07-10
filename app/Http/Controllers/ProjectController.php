@@ -12,11 +12,12 @@ use Carbon\Carbon;
 
 class ProjectController extends Controller
 {
-    public function index(Request $request)
+    public function list(Request $request)
     {
         $keyword = $request->input('keyword');
         $status = $request->input('status');
-        // $userId = auth()->id();
+        $userId = auth()->id();
+        $isAdmin = Admin::where('user_id', $userId)->exists();
     
         $projects = Project::query();
     
@@ -28,11 +29,16 @@ class ProjectController extends Controller
             $projects->where('status', $status);
         }
 
-        // $projects->whereHas('users', function ($query) use ($userId) {
-        //     $query->where('user_id', $userId);
-        // });
+        if ($isAdmin) {
+            // If the user is an admin, retrieve all projects
+            $projects->with(['client', 'admin.user', 'members.user']);
+        } else {
+            // If the user is a member, filter projects by member_id
+            $projects->whereHas('members', function ($query) use ($userId) {
+                $query->where('user_id', $userId);
+            })->with(['client', 'admin.user', 'members.user']);
+        }
     
-        $projects->with(['client', 'admin.user', 'members.user']);
         $projects = $projects->get();
     
         if ($projects->count() > 0) {
@@ -71,6 +77,87 @@ class ProjectController extends Controller
             ], 404);
         }
     }
+
+    public function index(Request $request)
+    {
+        $keyword = $request->input('keyword');
+        $status = $request->input('status');
+        $perPage = $request->input('per_page', 5);
+        $userId = auth()->id();
+        $isAdmin = Admin::where('user_id', $userId)->exists();
+
+        $projects = Project::query();
+
+        if ($keyword) {
+            $projects->where('name', 'like', "%$keyword%");
+        }
+
+        if ($status) {
+            $projects->where('status', $status);
+        }
+
+        if ($isAdmin) {
+            // If the user is an admin, retrieve all projects
+            $projects->with(['client', 'admin.user', 'members.user']);
+        } else {
+            // If the user is a member, filter projects by member_id
+            $projects->whereHas('members', function ($query) use ($userId) {
+                $query->where('user_id', $userId);
+            })->with(['client', 'admin.user', 'members.user']);
+        }
+
+        $projects = $projects->paginate($perPage);
+
+        if ($projects->count() > 0) {
+            $projectData = $projects->map(function ($project) {
+                return [
+                    'id' => $project->id,
+                    'name' => $project->name,
+                    'image' => url('storage/projects/' . $project->image),
+                    'status' => $project->status,
+                    'priority' => $project->priority,
+                    'description' => $project->description,
+                    'start_date' => $project->start_date,
+                    'end_date' => $project->end_date,
+                    'client' => $project->client ? $project->client->company_name : null,
+                    'admin' => $project->admin ? [
+                        'name' => $project->admin->user->name,
+                        'image_url' => $project->admin->user->image ? url('storage/users/' . $project->admin->user->image) : null
+                    ] : null,
+                    'members' => $project->members->map(function ($member) {
+                        return $member->user ? [
+                            'name' => $member->user->name,
+                            'image_url' => $member->user->image ? url('storage/users/' . $member->user->image) : null
+                        ] : null;
+                    })->filter()->values()->toArray(), // Filter out null values and reset array keys
+                ];
+            });
+
+            return response()->json([
+                'status' => 200,
+                'projects' => [
+                    'current_page' => $projects->currentPage(),
+                    'data' => $projectData,
+                    'first_page_url' => $projects->url(1),
+                    'from' => $projects->firstItem(),
+                    'last_page' => $projects->lastPage(),
+                    'last_page_url' => $projects->url($projects->lastPage()),
+                    'next_page_url' => $projects->nextPageUrl(),
+                    'path' => $projects->path(),
+                    'per_page' => $projects->perPage(),
+                    'prev_page_url' => $projects->previousPageUrl(),
+                    'to' => $projects->lastItem(),
+                    'total' => $projects->total(),
+                ]
+            ], 200);
+        } else {
+            return response()->json([
+                'status' => 404,
+                'message' => 'No Project Found!'
+            ], 404);
+        }
+    }
+
 
     public function store(Request $request) {
         $user = Auth::user();

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Feature;
+use App\Models\Admin;
 use Illuminate\Support\Facades\Validator;
 use Carbon\Carbon;
 
@@ -11,11 +12,24 @@ class FeatureController extends Controller
 {
     public function index(Request $request){
         $keyword = $request->input('keyword');
-        $features = Feature::with('project');
+        $perPage = $request->input('per_page', 5);
+        $userId = auth()->id();
+        $isAdmin = Admin::where('user_id', $userId)->exists();
+        $features = Feature::query();
         if($keyword){
             $features->where('name', 'like', "%$keyword%");
         }
-        $features = $features->get();
+        // Check if the user is an admin or member and fetch features accordingly
+        if ($isAdmin) {
+            // If admin, fetch all features
+            $features->with('project');
+        } else {
+            // If member, fetch features related to projects the member is associated with
+            $features->whereHas('project.members', function ($query) use ($userId) {
+                $query->where('user_id', $userId);
+            })->with('project');
+        }
+        $features = $features->paginate($perPage);
         if($features->count() > 0){
             return response()->json([
                 'status' => 200,

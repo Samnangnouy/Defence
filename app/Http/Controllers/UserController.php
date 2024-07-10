@@ -48,6 +48,38 @@ class UserController extends Controller
     public function index(Request $request)
     {
         $keyword = $request->input('keyword');
+        $perPage = $request->input('per_page', 5);
+        $users = User::with('roles');
+        
+        if ($keyword) {
+            $users->where('name', 'like', "%$keyword%");
+        }
+        
+        // Use pagination
+        $users = $users->paginate($perPage);
+
+        // Map over the users to add the image URL
+        $users->getCollection()->transform(function ($user) {
+            $user->imageUrl = url('storage/users/' . $user->image);
+            return $user;
+        });
+        
+        if ($users->count() > 0) {
+            return response()->json([
+                'status' => 200,
+                'users' => $users
+            ], 200);
+        } else {
+            return response()->json([
+                'status' => 404,
+                'message' => 'No User Found!'
+            ], 404);
+        }
+    }
+
+    public function list(Request $request)
+    {
+        $keyword = $request->input('keyword');
         $users = User::with('roles');
         
         if ($keyword) {

@@ -12,12 +12,46 @@ class ClientController extends Controller
     public function index(Request $request)
     {
         $keyword = $request->input('keyword');
+        $perPage = $request->input('per_page', 5);
         $clients = Client::query();
         
         if ($keyword) {
             $clients->where('company_name', 'like', "%$keyword%");
         }
         
+        // Retrieve the roles
+        $clients = $clients->paginate($perPage);
+    
+        if ($clients->isEmpty()) {
+            return response()->json([
+                'status' => 404,
+                'message' => 'No Client found.'
+            ], 404);
+        }
+
+
+        $clients->getCollection()->transform(function ($client) {
+            $client->imageUrl = url('storage/clients/' . $client->image);
+            return $client;
+        });
+    
+        return response()->json([
+            'status' => 200,
+            'message' => 'Clients retrieved successfully.',
+            'clients' => $clients
+        ], 200);
+    }
+
+    public function list(Request $request)
+    {
+        $keyword = $request->input('keyword');
+        $clients = Client::query();
+        
+        if ($keyword) {
+            $clients->where('company_name', 'like', "%$keyword%");
+        }
+        
+        // Retrieve the roles
         $clients = $clients->get();
     
         if ($clients->isEmpty()) {

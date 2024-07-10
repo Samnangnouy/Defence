@@ -11,11 +11,34 @@ class DesignationController extends Controller
 
     public function index(Request $request){
         $keyword = $request->input('keyword');
+        $perPage = $request->input('per_page', 5);
+        $designations = Designation::with('category');
+        if($keyword){
+            $designations->where('name', 'like', "%$keyword%");
+        }
+        $designations = $designations->paginate($perPage);
+        
+        if($designations->count() > 0){
+            return response()->json([
+                'status' => 200,
+                'designations' => $designations
+            ], 200);
+        }else{
+            return response()->json([
+                'status' => 404,
+                'message' => 'No Designation Found!'
+            ], 404);
+        }
+    }
+
+    public function list(Request $request){
+        $keyword = $request->input('keyword');
         $designations = Designation::with('category');
         if($keyword){
             $designations->where('name', 'like', "%$keyword%");
         }
         $designations = $designations->get();
+        
         if($designations->count() > 0){
             return response()->json([
                 'status' => 200,
